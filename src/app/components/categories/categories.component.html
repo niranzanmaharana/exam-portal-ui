@@ -1,0 +1,185 @@
+<div class="categories-container">
+  <div class="page-header">
+    <h1>Categories</h1>
+    <p class="subtitle">Manage question categories</p>
+    <button 
+      *ngIf="authService.isAdmin() || authService.isOrganizer()" 
+      (click)="startCreate()" 
+      class="btn btn-primary"
+      [disabled]="isCreating || isEditing">
+      + Create Category
+    </button>
+  </div>
+
+  <div *ngIf="isLoading && categories.length === 0" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading categories...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="message error-message">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="successMessage" class="message success-message">
+    <i class="bi bi-check-circle-fill"></i>
+    {{ successMessage }}
+  </div>
+
+  <!-- Create/Edit Form -->
+  <div *ngIf="isCreating || isEditing" class="form-card">
+    <h2>{{ isEditing ? 'Edit Category' : 'Create New Category' }}</h2>
+    <form (ngSubmit)="saveCategory()" class="category-form">
+      <div class="form-group">
+        <label for="name">Category Name *</label>
+        <input 
+          type="text" 
+          id="name" 
+          [(ngModel)]="categoryForm.name" 
+          name="name"
+          placeholder="Enter category name"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea 
+          id="description" 
+          [(ngModel)]="categoryForm.description" 
+          name="description"
+          placeholder="Enter category description (optional)"
+          rows="3"
+        ></textarea>
+      </div>
+
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="cancelForm()" [disabled]="isLoading">
+          Cancel
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+          <span *ngIf="!isLoading">{{ isEditing ? 'Update' : 'Create' }}</span>
+          <span *ngIf="isLoading">Saving...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div *ngIf="!isLoading || categories.length > 0" class="categories-content">
+    <!-- Search Bar -->
+    <div class="search-bar">
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        placeholder="Search categories..."
+        class="search-input"
+      />
+      <span class="search-icon">🔍</span>
+    </div>
+
+    <!-- Categories List -->
+    <div class="categories-grid">
+      <!-- All Categories Section (unified view for both admin and organizer) -->
+      <div *ngIf="filteredCategories.length > 0" class="category-section">
+        <h2 class="section-title">
+          <span class="section-icon">📂</span>
+          All Categories
+          <span class="badge">{{ filteredCategories.length }}</span>
+        </h2>
+        <div class="category-cards">
+          <div *ngFor="let category of filteredCategories" [class]="'category-card ' + (category.isCommon ? 'common' : '')">
+            <div class="category-header">
+              <h3>{{ category.name }}</h3>
+              <span *ngIf="category.isCommon" class="common-badge">Common</span>
+              <span *ngIf="!category.isCommon" class="private-badge">Private</span>
+            </div>
+            <p *ngIf="category.description" class="category-description">{{ category.description }}</p>
+            <div class="category-footer">
+              <span class="category-meta">
+                Created by: {{ category.createdBy?.username || 'Unknown' }}
+                <span *ngIf="category.createdAt"> - {{ category.createdAt | date:'short' }}</span>
+              </span>
+              <div class="category-actions" *ngIf="canEdit(category)">
+                <button (click)="startEdit(category)" class="btn-icon" title="Edit">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button (click)="deleteCategory(category.id!)" class="btn-icon danger" title="Delete">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Separate sections for Admin (old view - can be removed if not needed) -->
+      <ng-container *ngIf="false && authService.isAdmin()">
+        <!-- Common Categories Section -->
+        <div *ngIf="commonCategories.length > 0" class="category-section">
+          <h2 class="section-title">
+            <span class="section-icon">🌐</span>
+            Common Categories
+            <span class="badge">{{ commonCategories.length }}</span>
+          </h2>
+          <div class="category-cards">
+            <div *ngFor="let category of filteredCommonCategories" class="category-card common">
+              <div class="category-header">
+                <h3>{{ category.name }}</h3>
+                <span class="common-badge">Common</span>
+              </div>
+              <p *ngIf="category.description" class="category-description">{{ category.description }}</p>
+              <div class="category-footer">
+                <span class="category-meta">Created by: {{ category.createdBy?.username || 'Admin' }}</span>
+                <div class="category-actions" *ngIf="authService.isAdmin()">
+                  <button (click)="startEdit(category)" class="btn-icon" title="Edit">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button (click)="deleteCategory(category.id!)" class="btn-icon danger" title="Delete">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- My Categories Section -->
+        <div *ngIf="myCategories.length > 0" class="category-section">
+          <h2 class="section-title">
+            <span class="section-icon">📁</span>
+            My Categories
+            <span class="badge">{{ myCategories.length }}</span>
+          </h2>
+          <div class="category-cards">
+            <div *ngFor="let category of filteredMyCategories" class="category-card">
+              <div class="category-header">
+                <h3>{{ category.name }}</h3>
+                <span class="private-badge">Private</span>
+              </div>
+              <p *ngIf="category.description" class="category-description">{{ category.description }}</p>
+              <div class="category-footer">
+                <span class="category-meta">Created: {{ category.createdAt | date:'short' }}</span>
+                <div class="category-actions" *ngIf="canEdit(category)">
+                  <button (click)="startEdit(category)" class="btn-icon" title="Edit">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button (click)="deleteCategory(category.id!)" class="btn-icon danger" title="Delete">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Empty State -->
+      <div *ngIf="filteredCategories.length === 0" class="empty-state">
+        <div class="empty-icon">📂</div>
+        <p *ngIf="searchTerm">No categories found matching "{{ searchTerm }}"</p>
+        <p *ngIf="!searchTerm">No categories available. Create your first category!</p>
+      </div>
+    </div>
+  </div>
+</div>

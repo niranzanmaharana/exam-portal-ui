@@ -1,0 +1,149 @@
+<div class="auth-container">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-md-10 col-lg-8 col-xl-6">
+        <div class="card shadow-lg border-0 rounded-4 auth-card">
+          <div class="card-body p-4 p-md-5">
+            <!-- Home Link -->
+            <div class="mb-3">
+              <a routerLink="/home" class="btn btn-link text-decoration-none p-0">
+                <i class="bi bi-house-door me-1"></i>Back to Home
+              </a>
+            </div>
+
+            <!-- Register Form -->
+            <div>
+              <h2 class="text-center mb-2 form-title">Create Account</h2>
+              <p class="text-center text-muted mb-4">Join us and start your journey</p>
+              
+              <form (ngSubmit)="onRegister()">
+                <!-- First Name and Last Name in one row on large screens -->
+                <div class="row mb-3">
+                  <div class="col-12 col-lg-6 mb-3 mb-lg-0">
+                    <label for="firstName" class="form-label">First Name</label>
+                    <input 
+                      type="text" 
+                      class="form-control" 
+                      id="firstName" 
+                      [(ngModel)]="registerRequest.firstName" 
+                      name="firstName"
+                      placeholder="First name"
+                      required
+                    />
+                  </div>
+                  <div class="col-12 col-lg-6">
+                    <label for="lastName" class="form-label">Last Name</label>
+                    <input 
+                      type="text" 
+                      class="form-control" 
+                      id="lastName" 
+                      [(ngModel)]="registerRequest.lastName" 
+                      name="lastName"
+                      placeholder="Last name"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <!-- Username and Email in one row on large screens -->
+                <div class="row mb-3">
+                  <div class="col-12 col-lg-6 mb-3 mb-lg-0">
+                    <label for="register-username" class="form-label">Username</label>
+                    <input 
+                      type="text" 
+                      class="form-control" 
+                      id="register-username" 
+                      [(ngModel)]="registerRequest.username" 
+                      name="registerUsername"
+                      placeholder="Choose a username"
+                      required
+                    />
+                  </div>
+                  <div class="col-12 col-lg-6">
+                    <label for="email" class="form-label">Email</label>
+                    <input 
+                      type="email" 
+                      class="form-control" 
+                      id="email" 
+                      [(ngModel)]="registerRequest.email" 
+                      name="email"
+                      placeholder="Enter your email"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <!-- Mobile Number and Password in one row on large screens -->
+                <div class="row mb-3">
+                  <div class="col-12 col-lg-6 mb-3 mb-lg-0">
+                    <label for="mobileNumber" class="form-label">Mobile Number</label>
+                    <input 
+                      type="tel" 
+                      class="form-control" 
+                      id="mobileNumber" 
+                      [(ngModel)]="registerRequest.mobileNumber" 
+                      name="mobileNumber"
+                      placeholder="Enter your mobile number"
+                    />
+                  </div>
+                  <div class="col-12 col-lg-6">
+                    <label for="register-password" class="form-label">Password</label>
+                    <input 
+                      type="password" 
+                      class="form-control" 
+                      id="register-password" 
+                      [(ngModel)]="registerRequest.password" 
+                      name="registerPassword"
+                      placeholder="Create a password"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <!-- Role - Full width -->
+                <div class="mb-3">
+                  <label for="role" class="form-label">Role</label>
+                  <select 
+                    class="form-select" 
+                    id="role" 
+                    [(ngModel)]="registerRequest.role" 
+                    name="role"
+                    required
+                  >
+                    <option value="CANDIDATE">Candidate</option>
+                    <option value="ORGANIZER">Organizer</option>
+                    <option value="ADMIN">Admin</option>
+                  </select>
+                </div>
+                
+                <div *ngIf="errorMessage" class="alert alert-danger d-flex align-items-center mb-3" role="alert">
+                  <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                  <div>{{ errorMessage }}</div>
+                </div>
+                
+                <div *ngIf="successMessage" class="alert alert-success d-flex align-items-center mb-3" role="alert">
+                  <i class="bi bi-check-circle-fill me-2"></i>
+                  <div>{{ successMessage }}</div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-lg w-100 submit-btn" [disabled]="isLoading">
+                  <span *ngIf="!isLoading">Create Account</span>
+                  <span *ngIf="isLoading">
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Loading...
+                  </span>
+                </button>
+                
+                <div class="text-center mt-4">
+                  <p class="text-muted mb-0">Already have an account? 
+                    <a routerLink="/login" class="text-decoration-none fw-semibold">Sign In</a>
+                  </p>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,279 @@
+<div class="exam-form-container">
+  <div class="form-header">
+    <h1>{{ isEditMode ? 'Edit Exam' : 'Create New Exam' }}</h1>
+    <button (click)="cancel()" class="btn btn-secondary">Cancel</button>
+  </div>
+
+  <div *ngIf="isLoading && isEditMode" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading exam...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="message error-message">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    {{ errorMessage }}
+  </div>
+
+  <form *ngIf="!isLoading || !isEditMode" (ngSubmit)="saveExam()" class="exam-form">
+    <div class="form-group">
+      <label for="title">Exam Title *</label>
+      <input 
+        type="text" 
+        id="title" 
+        [(ngModel)]="exam.title" 
+        name="title"
+        placeholder="Enter exam title"
+        required
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="description">Description</label>
+      <textarea 
+        id="description" 
+        [(ngModel)]="exam.description" 
+        name="description"
+        placeholder="Enter exam description (optional)"
+        rows="4"
+      ></textarea>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="totalMarks">Total Marks *</label>
+        <input 
+          type="number" 
+          id="totalMarks" 
+          [(ngModel)]="exam.totalMarks" 
+          name="totalMarks"
+          min="1"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="passingMarks">Minimum Marks to Pass *</label>
+        <input 
+          type="number" 
+          id="passingMarks" 
+          [(ngModel)]="exam.passingMarks" 
+          name="passingMarks"
+          min="0"
+          required
+        />
+        <small class="form-text text-muted">Minimum marks (points) required to pass this exam</small>
+      </div>
+
+      <div class="form-group">
+        <label for="maxQuestions">Max Questions (Optional)</label>
+        <input 
+          type="number" 
+          id="maxQuestions" 
+          [(ngModel)]="exam.maxQuestions" 
+          name="maxQuestions"
+          min="1"
+          placeholder="Leave empty to show all questions"
+        />
+        <small class="form-hint">
+          If set, only this many questions will be randomly selected for students. Leave empty to show all questions.
+        </small>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="examDate">Exam Date</label>
+        <input 
+          type="date" 
+          id="examDate" 
+          [(ngModel)]="examDate" 
+          name="examDate"
+          (ngModelChange)="calculateDuration()"
+        />
+        <small class="form-hint">Select the date for the exam (optional)</small>
+      </div>
+
+      <div class="form-group">
+        <label for="startTime">Start Time</label>
+        <input 
+          type="time" 
+          id="startTime" 
+          [(ngModel)]="startTime" 
+          name="startTime"
+          (ngModelChange)="calculateDuration()"
+        />
+        <small class="form-hint">Select the start time for the exam (optional)</small>
+      </div>
+
+      <div class="form-group">
+        <label for="endTime">End Time</label>
+        <input 
+          type="time" 
+          id="endTime" 
+          [(ngModel)]="endTime" 
+          name="endTime"
+          (ngModelChange)="calculateDuration()"
+        />
+        <small class="form-hint">Select the end time for the exam (optional)</small>
+      </div>
+
+      <div class="form-group">
+        <label for="duration">Duration (minutes) *</label>
+        <input 
+          type="number" 
+          id="duration" 
+          [(ngModel)]="exam.duration" 
+          name="duration"
+          min="1"
+          required
+          [readonly]="isDurationAutoCalculated"
+          [class.readonly-field]="isDurationAutoCalculated"
+        />
+        <small class="form-hint">
+          <span *ngIf="isDurationAutoCalculated">Auto-calculated from start and end time</span>
+          <span *ngIf="!isDurationAutoCalculated">Enter duration manually (required)</span>
+        </small>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="rulesAndRestrictions">Rules and Restrictions</label>
+      <div class="editor-hint">
+        <i class="bi bi-clipboard me-1"></i>
+        <span class="hint-text">Set custom rules and restrictions for this exam (supports multiple languages and formatting)</span>
+      </div>
+      <app-rich-text-editor
+        [(ngModel)]="exam.rulesAndRestrictions"
+        name="rulesAndRestrictions"
+        placeholder="Enter custom rules and restrictions for this exam (e.g., No calculators allowed, Mobile phones must be switched off, etc.)"
+        height="200px"
+      ></app-rich-text-editor>
+      <small class="form-hint">
+        These rules will be displayed to students on the exam instructions page. Leave empty to use default rules.
+      </small>
+    </div>
+
+    <!-- Exam Restrictions Section -->
+    <div class="restrictions-section">
+      <h3 class="section-title">🔒 Exam Restrictions & Security</h3>
+      <p class="section-description">Configure security restrictions that will be enforced during the exam</p>
+      
+      <div class="restrictions-grid">
+        <div class="restriction-item">
+          <div class="restriction-header">
+            <label class="restriction-label">
+              <input 
+                type="checkbox" 
+                [(ngModel)]="exam.requireFullscreen" 
+                name="requireFullscreen"
+                class="restriction-checkbox"
+              />
+              <span class="restriction-title">Require Fullscreen</span>
+            </label>
+          </div>
+          <p class="restriction-description">Students must enter fullscreen mode to start the exam</p>
+        </div>
+
+        <div class="restriction-item">
+          <div class="restriction-header">
+            <label class="restriction-label">
+              <input 
+                type="checkbox" 
+                [(ngModel)]="exam.disableRightClick" 
+                name="disableRightClick"
+                class="restriction-checkbox"
+              />
+              <span class="restriction-title">Disable Right Click</span>
+            </label>
+          </div>
+          <p class="restriction-description">Prevent right-click context menu during the exam</p>
+        </div>
+
+        <div class="restriction-item">
+          <div class="restriction-header">
+            <label class="restriction-label">
+              <input 
+                type="checkbox" 
+                [(ngModel)]="exam.requireCamera" 
+                name="requireCamera"
+                class="restriction-checkbox"
+              />
+              <span class="restriction-title">Require Camera</span>
+            </label>
+          </div>
+          <p class="restriction-description">Students must grant camera access to monitor during exam</p>
+        </div>
+
+        <div class="restriction-item">
+          <div class="restriction-header">
+            <label class="restriction-label">
+              <input 
+                type="checkbox" 
+                [(ngModel)]="exam.disableCopyPaste" 
+                name="disableCopyPaste"
+                class="restriction-checkbox"
+              />
+              <span class="restriction-title">Disable Copy/Paste</span>
+            </label>
+          </div>
+          <p class="restriction-description">Prevent copying and pasting text during the exam</p>
+        </div>
+
+        <div class="restriction-item">
+          <div class="restriction-header">
+            <label class="restriction-label">
+              <input 
+                type="checkbox" 
+                [(ngModel)]="exam.disablePrintScreen" 
+                name="disablePrintScreen"
+                class="restriction-checkbox"
+              />
+              <span class="restriction-title">Disable Print Screen</span>
+            </label>
+          </div>
+          <p class="restriction-description">Prevent taking screenshots using Print Screen key</p>
+        </div>
+
+        <div class="restriction-item">
+          <div class="restriction-header">
+            <label class="restriction-label">
+              <input 
+                type="checkbox" 
+                [(ngModel)]="exam.preventTabSwitch" 
+                name="preventTabSwitch"
+                class="restriction-checkbox"
+              />
+              <span class="restriction-title">Prevent Tab Switch & Window Focus Loss</span>
+            </label>
+          </div>
+          <p class="restriction-description">Monitor and prevent switching browser tabs or losing window focus</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group" *ngIf="authService.isOrganizer() && (isEditMode && exam.status === 'DRAFT')">
+      <label for="status">Status</label>
+      <select 
+        id="status" 
+        [(ngModel)]="exam.status" 
+        name="status"
+      >
+        <option value="DRAFT">Draft</option>
+        <option value="PUBLISHED">Published</option>
+      </select>
+      <small class="form-hint">
+        You can change the status to Published.
+      </small>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" (click)="cancel()" [disabled]="isLoading">
+        Cancel
+      </button>
+      <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+        <span *ngIf="!isLoading">{{ isEditMode ? 'Update' : 'Create' }} Exam</span>
+        <span *ngIf="isLoading">Saving...</span>
+      </button>
+    </div>
+  </form>
+</div>

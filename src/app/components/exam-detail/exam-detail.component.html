@@ -1,0 +1,225 @@
+<div class="exam-detail-container">
+  <div *ngIf="isLoading && !exam" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading exam...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="message error-message">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="exam" class="exam-detail-content">
+    <!-- Exam Header -->
+    <div class="exam-header-section">
+      <div class="header-content">
+        <div>
+          <h1>{{ exam.title }}</h1>
+          <span [class]="'status-badge ' + getStatusClass(exam.status)">
+            {{ getStatusLabel(exam.status) }}
+          </span>
+        </div>
+        <div class="header-actions" *ngIf="canEdit()">
+          <button (click)="editExam()" class="btn btn-secondary me-2">
+            <i class="bi bi-pencil-square me-1"></i>Edit Exam
+          </button>
+          <button *ngIf="canPublish()" (click)="publishExam()" class="btn btn-primary">
+            <i class="bi bi-megaphone me-1"></i>Publish Exam
+          </button>
+        </div>
+      </div>
+      <p *ngIf="exam.description" class="exam-description">{{ exam.description }}</p>
+
+      <!-- Exam Access (Only for Published Exams) -->
+      <div class="header-access-section" *ngIf="exam.status === 'PUBLISHED'">
+        <div class="header-access-row">
+          <div class="header-access-code" *ngIf="exam.accessCode">
+            <label>Access Code:</label>
+            <div class="code-box-compact">{{ exam.accessCode }}</div>
+          </div>
+          <div class="header-access-link" *ngIf="exam.accessCode">
+            <label>Access Link:</label>
+            <div class="button-group-compact">
+              <button (click)="copyAccessLink()" class="btn-copy-compact" title="Copy link">
+                <i class="bi bi-clipboard me-1"></i>Copy Link
+                <div class="tooltip" *ngIf="showCopyTooltip">Copied!</div>
+              </button>
+              <button (click)="openQRCodeModal()" class="btn-qr-compact" title="View QR Code" *ngIf="qrCodeDataUrl">
+                <i class="bi bi-qr-code"></i>
+              </button>
+              <button *ngIf="authService.isOrganizer() && canEdit()" (click)="regenerateAccessCode()"
+                class="btn btn-secondary btn-sm btn-regenerate-compact" [disabled]="isLoading"
+                title="Generate new access code">
+                <i class="bi bi-arrow-clockwise me-1"></i>Regenerate
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="no-access-code-message-compact" *ngIf="!exam.accessCode">
+          <p>No access code generated yet. Click "Regenerate" to generate one.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Exam Info Cards -->
+    <div class="info-cards">
+      <div class="info-card">
+        <div class="info-icon"><i class="bi bi-clock"></i></div>
+        <div class="info-content">
+          <span class="info-label">Duration</span>
+          <span class="info-value">{{ formatDuration(exam.duration) }}</span>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-icon"><i class="bi bi-graph-up"></i></div>
+        <div class="info-content">
+          <span class="info-label">Total Marks</span>
+          <span class="info-value">{{ exam.totalMarks }}</span>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="info-content">
+          <span class="info-label">Passing Marks</span>
+          <span class="info-value">{{ exam.passingMarks }}</span>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-icon"><i class="bi bi-question-circle"></i></div>
+        <div class="info-content">
+          <span class="info-label">Questions</span>
+          <span class="info-value">
+            {{ questions.length }}
+            <span *ngIf="exam.maxQuestions && exam.maxQuestions < questions.length" class="max-questions-hint">
+              ({{ exam.maxQuestions }} shown to students)
+            </span>
+          </span>
+        </div>
+      </div>
+      <div class="info-card" *ngIf="questions.length > 0">
+        <div class="info-icon"><i class="bi bi-file-text"></i></div>
+        <div class="info-content">
+          <span class="info-label">Question Marks</span>
+          <span class="info-value">{{ totalQuestionMarks }} / {{ exam.totalMarks }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Schedule Info -->
+    <div class="schedule-section" *ngIf="exam.startTime || exam.endTime">
+      <h2>Schedule</h2>
+      <div class="schedule-details">
+        <div class="schedule-item" *ngIf="exam.startTime">
+          <span class="schedule-label">Start Time:</span>
+          <span class="schedule-value">{{ exam.startTime | date:'medium' }}</span>
+        </div>
+        <div class="schedule-item" *ngIf="exam.endTime">
+          <span class="schedule-label">End Time:</span>
+          <span class="schedule-value">{{ exam.endTime | date:'medium' }}</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- QR Code Modal -->
+  <div class="modal-overlay" *ngIf="showQRModal" (click)="closeQRCodeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>QR Code</h2>
+        <button class="modal-close" (click)="closeQRCodeModal()" title="Close">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="qr-code-modal-container">
+          <img *ngIf="qrCodeDataUrl" [src]="qrCodeDataUrl" alt="QR Code" class="qr-code-modal-image" />
+          <p class="qr-code-modal-hint">Scan this QR code to access the exam</p>
+          <div class="qr-code-link">
+            <label>Access Link:</label>
+            <div class="button-group-modal">
+              <button (click)="copyAccessLink()" class="btn-copy-modal" title="Copy link">
+                <i class="bi bi-clipboard me-1"></i>Copy Link
+                <div class="tooltip-modal" *ngIf="showCopyTooltip">Copied!</div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Questions Section -->
+  <div class="questions-section">
+    <div class="section-header">
+      <h2>Questions ({{ questions.length }})</h2>
+      <div class="question-actions-header" *ngIf="authService.isAdmin() || authService.isOrganizer()">
+        <a *ngIf="exam && exam.status === 'DRAFT'" 
+          [routerLink]="['/exams', exam.id, 'map-questions']"
+          class="btn btn-secondary me-2">
+          <i class="bi bi-link-45deg me-1"></i>Map Existing Questions
+        </a>
+        <button (click)="addQuestion()" class="btn btn-primary">
+          <i class="bi bi-plus-circle me-1"></i>Add New Question
+        </button>
+      </div>
+    </div>
+    
+    <div *ngIf="exam && exam.status !== 'DRAFT' && (authService.isAdmin() || authService.isOrganizer())" 
+      class="alert alert-info mt-3">
+      <i class="bi bi-info-circle me-2"></i>
+      <strong>Note:</strong> Questions can only be mapped to exams when the exam is in <strong>DRAFT</strong> status. 
+      This exam is currently <strong>{{ getStatusLabel(exam.status) }}</strong>.
+    </div>
+
+    <div *ngIf="questions.length === 0" class="empty-state">
+      <div class="empty-icon"><i class="bi bi-question-circle"></i></div>
+      <p>No questions added yet. Add your first question or map existing questions from the question bank!</p>
+      <div class="empty-state-actions" *ngIf="authService.isAdmin() || authService.isOrganizer()">
+        <a *ngIf="exam && exam.status === 'DRAFT'" 
+          [routerLink]="['/exams', exam.id, 'map-questions']"
+          class="btn btn-secondary me-2">
+          <i class="bi bi-link-45deg me-1"></i>Map Existing Questions
+        </a>
+        <button (click)="addQuestion()" class="btn btn-primary">
+          + Add Question
+        </button>
+      </div>
+    </div>
+
+    <div class="questions-list">
+      <div *ngFor="let question of questions; let i = index" class="question-item">
+        <div class="question-number">{{ i + 1 }}</div>
+        <div class="question-content">
+          <div class="question-header">
+            <div class="question-text" [innerHTML]="question.questionText"></div>
+            <div class="question-badges">
+              <span class="question-type-badge">{{ getQuestionTypeLabel(question.questionType) }}</span>
+              <span class="marks-badge">{{ question.marks }} marks</span>
+              <span *ngIf="question.category" class="category-badge">
+                {{ question.category.name }}
+              </span>
+            </div>
+          </div>
+          <div class="question-footer">
+            <span class="question-meta">
+              <span *ngIf="question.difficulty">Difficulty: {{ question.difficulty }}</span>
+            </span>
+            <div class="question-actions" *ngIf="authService.isAdmin() || authService.isOrganizer()">
+              <button (click)="editQuestion(question)" class="btn-icon" title="Edit">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button *ngIf="exam && exam.status === 'DRAFT'" (click)="removeQuestionFromExam(question.id)"
+                class="btn-icon danger" title="Remove from Exam">
+                <i class="bi bi-x-circle"></i>
+              </button>
+              <button *ngIf="!exam || exam.status !== 'DRAFT'" (click)="deleteQuestion(question.id!)"
+                class="btn-icon danger" title="Delete">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

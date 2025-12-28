@@ -1,0 +1,173 @@
+<div class="acknowledgment-container min-vh-100 bg-light py-5">
+  <div class="container">
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="text-center py-5">
+      <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="fs-5">Loading your results...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="errorMessage && !isLoading" class="alert alert-danger" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      <strong>Error:</strong> {{ errorMessage }}
+    </div>
+
+    <!-- Result Content -->
+    <div *ngIf="result && !isLoading" class="row justify-content-center">
+      <div class="col-12 col-lg-10 col-xl-8">
+        <!-- Success Header -->
+        <div class="text-center mb-5">
+          <div class="success-icon mb-3">
+            <i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
+          </div>
+          <h1 class="display-4 fw-bold text-success mb-3">Exam Submitted Successfully!</h1>
+          <p class="lead text-muted">Thank you for completing the exam. Your results are displayed below.</p>
+        </div>
+
+        <!-- Student Details Card -->
+        <div class="card shadow-lg border-0 rounded-4 mb-4">
+          <div class="card-header bg-primary text-white rounded-top-4 py-3">
+            <h2 class="card-title mb-0 fs-4 fw-bold">
+              <i class="bi bi-person-badge me-2"></i>Student Information
+            </h2>
+          </div>
+          <div class="card-body p-4">
+            <div class="row g-4">
+              <div class="col-md-6">
+                <div class="p-3 bg-light rounded-3">
+                  <div class="text-muted small fw-semibold text-uppercase mb-2">Name</div>
+                  <div class="fs-5 fw-bold text-dark">{{ result.studentName || 'N/A' }}</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="p-3 bg-light rounded-3">
+                  <div class="text-muted small fw-semibold text-uppercase mb-2">Registration Number</div>
+                  <div class="fs-5 fw-bold text-dark">{{ result.registrationNumber || 'N/A' }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Exam Details Card -->
+        <div class="card shadow-lg border-0 rounded-4 mb-4" *ngIf="exam">
+          <div class="card-header bg-info text-white rounded-top-4 py-3">
+            <h2 class="card-title mb-0 fs-4 fw-bold">
+              <i class="bi bi-file-text me-2"></i>Exam Details
+            </h2>
+          </div>
+          <div class="card-body p-4">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="p-3 bg-light rounded-3">
+                  <div class="text-muted small fw-semibold text-uppercase mb-2">Exam Title</div>
+                  <div class="fs-5 fw-bold text-dark">{{ exam.title }}</div>
+                </div>
+              </div>
+              <div class="col-md-6" *ngIf="timeTaken">
+                <div class="p-3 bg-light rounded-3">
+                  <div class="text-muted small fw-semibold text-uppercase mb-2">Time Taken</div>
+                  <div class="fs-5 fw-bold text-primary">{{ timeTaken }}</div>
+                </div>
+              </div>
+              <div class="col-md-6" *ngIf="exam.duration">
+                <div class="p-3 bg-light rounded-3">
+                  <div class="text-muted small fw-semibold text-uppercase mb-2">Exam Duration</div>
+                  <div class="fs-5 fw-bold text-dark">{{ exam.duration }} minutes</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Results Card -->
+        <div class="card shadow-lg border-0 rounded-4 mb-4">
+          <div class="card-header bg-success text-white rounded-top-4 py-3">
+            <h2 class="card-title mb-0 fs-4 fw-bold">
+              <i class="bi bi-trophy me-2"></i>Your Results
+            </h2>
+          </div>
+          <div class="card-body p-4">
+            <div class="row g-4">
+              <!-- Score -->
+              <div class="col-md-6">
+                <div class="text-center p-4 bg-light rounded-4">
+                  <div class="text-muted small fw-semibold text-uppercase mb-2">Score</div>
+                  <div class="display-4 fw-bold text-primary mb-2">
+                    {{ result.obtainedMarks }} / {{ result.totalMarks }}
+                  </div>
+                  <div class="text-muted">Marks Obtained</div>
+                </div>
+              </div>
+
+              <!-- Percentage -->
+              <div class="col-md-6">
+                <div class="text-center p-4 bg-light rounded-4">
+                  <div class="text-muted small fw-semibold text-uppercase mb-2">Percentage</div>
+                  <div class="display-4 fw-bold" [ngClass]="{
+                    'text-success': result.percentage >= 70,
+                    'text-warning': result.percentage >= 50 && result.percentage < 70,
+                    'text-danger': result.percentage < 50
+                  }">
+                    {{ result.percentage.toFixed(2) }}%
+                  </div>
+                  <div class="text-muted">Overall Performance</div>
+                </div>
+              </div>
+
+              <!-- Grade -->
+              <div class="col-12">
+                <div class="text-center p-4 bg-light rounded-4">
+                  <div class="text-muted small fw-semibold text-uppercase mb-3">Grade</div>
+                  <div class="display-1 fw-bold" [ngClass]="{
+                    'text-success': result.grade === 'A+' || result.grade === 'A',
+                    'text-info': result.grade === 'B+' || result.grade === 'B',
+                    'text-warning': result.grade === 'C',
+                    'text-danger': result.grade === 'F'
+                  }">
+                    {{ result.grade || 'N/A' }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Passing Status -->
+              <div class="col-12" *ngIf="exam">
+                <div class="alert" [ngClass]="{
+                  'alert-success': result.obtainedMarks >= exam.passingMarks,
+                  'alert-danger': result.obtainedMarks < exam.passingMarks
+                }" role="alert">
+                  <div class="d-flex align-items-center">
+                    <i class="bi me-3" [ngClass]="{
+                      'bi-check-circle-fill': result.obtainedMarks >= exam.passingMarks,
+                      'bi-x-circle-fill': result.obtainedMarks < exam.passingMarks
+                    }" style="font-size: 2rem;"></i>
+                    <div>
+                      <h4 class="alert-heading mb-1">
+                        {{ result.obtainedMarks >= exam.passingMarks ? 'Congratulations!' : 'Not Passed' }}
+                      </h4>
+                      <p class="mb-0">
+                        {{ result.obtainedMarks >= exam.passingMarks 
+                          ? 'You have successfully passed the exam!' 
+                          : 'You need ' + exam.passingMarks + ' marks to pass. Your score: ' + result.obtainedMarks + ' marks (' + result.percentage.toFixed(2) + '%)' }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Button -->
+        <div class="text-center">
+          <button class="btn btn-primary btn-lg px-5" (click)="goHome()">
+            <i class="bi bi-house me-2"></i>Go to Home
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

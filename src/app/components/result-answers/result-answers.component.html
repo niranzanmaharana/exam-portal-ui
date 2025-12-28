@@ -1,0 +1,164 @@
+<div class="container-fluid py-4">
+  <div class="row">
+    <div class="col-12">
+      <!-- Back Button -->
+      <button class="btn btn-outline-secondary mb-3" (click)="goBack()">
+        <i class="bi bi-arrow-left me-1"></i>Back to Result Details
+      </button>
+
+      <!-- Header -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">
+            <i class="bi bi-list-check me-2"></i>Review Answers
+          </h4>
+        </div>
+        <div class="card-body" *ngIf="result">
+          <div class="row">
+            <div class="col-md-6">
+              <h5>{{ result.examTitle || 'Untitled Exam' }}</h5>
+              <p class="text-muted mb-0">{{ result.examDescription }}</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+              <div class="mt-2">
+                <span class="badge bg-info me-2">Total: {{ result.totalMarks }} marks</span>
+                <span class="badge" [ngClass]="result.obtainedMarks >= (result.passingMarks || 0) ? 'bg-success' : 'bg-danger'">
+                  Obtained: {{ result.obtainedMarks }} marks
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3 text-muted">Loading answers...</p>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="error && !isLoading" class="alert alert-danger" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>{{ error }}
+      </div>
+
+      <!-- Answers List -->
+      <div *ngIf="!isLoading && !error && answers.length > 0">
+        <div *ngFor="let answer of answers; let i = index" class="card shadow-sm mb-3">
+          <div class="card-header" [ngClass]="answer.isCorrect ? 'bg-success text-white' : 'bg-danger text-white'">
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">
+                <span class="badge bg-light text-dark me-2">Q{{ i + 1 }}</span>
+                Question {{ i + 1 }}
+              </h5>
+              <div>
+                <span class="badge bg-light text-dark me-2">
+                  {{ answer.marksObtained || 0 }} / {{ answer.questionMarks }} marks
+                </span>
+                <span class="badge bg-light" [ngClass]="answer.isCorrect ? 'text-success' : 'text-danger'">
+                  <i class="bi me-1" [ngClass]="answer.isCorrect ? 'bi-check-circle' : 'bi-x-circle'"></i>
+                  {{ answer.isCorrect ? 'Correct' : 'Incorrect' }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <!-- Question -->
+            <div class="mb-3">
+              <h6 class="text-muted mb-2">
+                <i class="bi bi-question-circle me-1"></i>Question
+              </h6>
+              <p class="mb-2">{{ answer.questionText }}</p>
+              <div class="d-flex gap-2 flex-wrap">
+                <span class="badge bg-secondary">{{ getQuestionTypeLabel(answer.questionType) }}</span>
+                <span *ngIf="answer.difficulty" class="badge bg-info">{{ answer.difficulty }}</span>
+                <span *ngIf="answer.categoryName" class="badge bg-primary">{{ answer.categoryName }}</span>
+              </div>
+            </div>
+
+            <!-- Options (for Multiple Choice) -->
+            <div *ngIf="answer.questionType === 'MULTIPLE_CHOICE' && parseOptions(answer.options).length > 0" class="mb-3">
+              <h6 class="text-muted mb-2">
+                <i class="bi bi-list-ul me-1"></i>Options
+              </h6>
+              <div class="list-group">
+                <div *ngFor="let option of parseOptions(answer.options); let optIndex = index" 
+                     class="list-group-item"
+                     [ngClass]="{
+                       'list-group-item-success': option === answer.correctAnswer,
+                       'list-group-item-danger': option === answer.answerText && option !== answer.correctAnswer
+                     }">
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" [checked]="option === answer.answerText" disabled>
+                    <label class="form-check-label w-100">
+                      {{ getOptionLabel(optIndex) }}. {{ option }}
+                      <span *ngIf="option === answer.correctAnswer" class="badge bg-success ms-2">Correct Answer</span>
+                      <span *ngIf="option === answer.answerText && option !== answer.correctAnswer" class="badge bg-danger ms-2">Your Answer</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Student Answer -->
+            <div class="mb-3">
+              <h6 class="text-muted mb-2">
+                <i class="bi bi-pencil me-1"></i>Your Answer
+              </h6>
+              <div class="answer-box" [ngClass]="{'answer-correct': answer.isCorrect, 'answer-incorrect': !answer.isCorrect}">
+                <p class="mb-0" *ngIf="answer.answerText && answer.answerText.trim() !== ''">
+                  {{ answer.answerText }}
+                </p>
+                <p class="mb-0 text-muted fst-italic" *ngIf="!answer.answerText || answer.answerText.trim() === ''">
+                  No answer provided
+                </p>
+              </div>
+            </div>
+
+            <!-- Correct Answer -->
+            <div *ngIf="answer.correctAnswer" class="mb-3">
+              <h6 class="text-muted mb-2">
+                <i class="bi bi-check-circle me-1"></i>Correct Answer
+              </h6>
+              <div class="answer-box answer-correct">
+                <p class="mb-0">{{ answer.correctAnswer }}</p>
+              </div>
+            </div>
+
+            <!-- Marks -->
+            <div class="border-top pt-3">
+              <div class="row">
+                <div class="col-md-6">
+                  <small class="text-muted">
+                    <i class="bi bi-clock me-1"></i>
+                    Answered: {{ formatDate(answer.answeredAt) }}
+                  </small>
+                </div>
+                <div class="col-md-6 text-md-end">
+                  <strong>
+                    Marks Obtained: 
+                    <span [ngClass]="answer.isCorrect ? 'text-success' : 'text-danger'">
+                      {{ answer.marksObtained || 0 }} / {{ answer.questionMarks }}
+                    </span>
+                  </strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!isLoading && !error && answers.length === 0" class="card">
+        <div class="card-body text-center py-5">
+          <i class="bi bi-inbox display-4 text-muted"></i>
+          <h5 class="mt-3 text-muted">No Answers Found</h5>
+          <p class="text-muted">No answers are available for this exam session.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

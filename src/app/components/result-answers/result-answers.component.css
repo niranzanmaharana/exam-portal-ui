@@ -1,0 +1,50 @@
+.answer-box {
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 0.5rem;
+  border-left: 4px solid #dee2e6;
+}
+
+.answer-correct {
+  background-color: #d1e7dd;
+  border-left-color: #198754;
+}
+
+.answer-incorrect {
+  background-color: #f8d7da;
+  border-left-color: #dc3545;
+}
+
+.card {
+  border: none;
+  border-radius: 0.5rem;
+}
+
+.card-header {
+  border-bottom: 2px solid #dee2e6;
+  font-weight: 600;
+}
+
+.list-group-item {
+  border: 1px solid #dee2e6;
+}
+
+.list-group-item-success {
+  background-color: #d1e7dd;
+  border-color: #198754;
+}
+
+.list-group-item-danger {
+  background-color: #f8d7da;
+  border-color: #dc3545;
+}
+
+.form-check-input:checked {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
+
+.form-check-input:disabled {
+  cursor: not-allowed;
+}
+

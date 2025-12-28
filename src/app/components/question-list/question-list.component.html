@@ -1,0 +1,171 @@
+<div class="question-list-container">
+  <div class="page-header">
+    <h1>Question Bank</h1>
+    <p class="subtitle">Manage your question bank</p>
+    <div class="header-actions">
+      <a 
+        *ngIf="authService.isAdmin() || authService.isOrganizer()" 
+        routerLink="/questions/bulk-upload"
+        class="btn btn-secondary me-2">
+        <i class="bi bi-upload me-1"></i>Bulk Upload
+      </a>
+      <button 
+        *ngIf="authService.isAdmin() || authService.isOrganizer()" 
+        (click)="createQuestion()" 
+        class="btn btn-primary">
+        + Create Question
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading && questions.length === 0" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading questions...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="message error-message">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="!isLoading || questions.length > 0" class="questions-content">
+    <!-- Filters -->
+    <div class="filters-section">
+      <div class="search-bar">
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm" 
+          placeholder="Search questions..."
+          class="search-input"
+        />
+        <span class="search-icon">🔍</span>
+      </div>
+
+      <div class="filter-row">
+        <div class="filter-group">
+          <label for="categoryFilter">Category</label>
+          <select 
+            id="categoryFilter" 
+            [(ngModel)]="selectedCategoryId" 
+            class="filter-select"
+          >
+            <option [ngValue]="null">All Categories</option>
+            <option *ngFor="let category of categories" [ngValue]="category.id">
+              {{ category.name }} {{ category.isCommon ? '(Common)' : '' }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="examFilter">Exam</label>
+          <select 
+            id="examFilter" 
+            [(ngModel)]="selectedExamId" 
+            class="filter-select"
+          >
+            <option [ngValue]="null">All Exams</option>
+            <option *ngFor="let exam of exams" [ngValue]="exam.id">
+              {{ exam.title }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="typeFilter">Question Type</label>
+          <select 
+            id="typeFilter" 
+            [(ngModel)]="selectedQuestionType" 
+            class="filter-select"
+          >
+            <option [ngValue]="null">All Types</option>
+            <option value="MULTIPLE_CHOICE">Multiple Choice</option>
+            <option value="TRUE_FALSE">True/False</option>
+            <option value="SHORT_ANSWER">Short Answer</option>
+            <option value="ESSAY">Essay</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="difficultyFilter">Difficulty</label>
+          <select 
+            id="difficultyFilter" 
+            [(ngModel)]="selectedDifficulty" 
+            class="filter-select"
+          >
+            <option [ngValue]="null">All Difficulties</option>
+            <option value="EASY">Easy</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="HARD">Hard</option>
+          </select>
+        </div>
+
+        <button (click)="clearFilters()" class="btn btn-secondary clear-filters-btn">
+          Clear Filters
+        </button>
+      </div>
+    </div>
+
+    <!-- Questions List -->
+    <div class="questions-section">
+      <div class="questions-header">
+        <h2>Questions ({{ filteredQuestions.length }})</h2>
+      </div>
+
+      <div *ngIf="filteredQuestions.length === 0" class="empty-state">
+        <div class="empty-icon"><i class="bi bi-question-circle"></i></div>
+        <p *ngIf="searchTerm || selectedCategoryId || selectedExamId || selectedQuestionType || selectedDifficulty">
+          No questions found matching your filters
+        </p>
+        <p *ngIf="!searchTerm && !selectedCategoryId && !selectedExamId && !selectedQuestionType && !selectedDifficulty">
+          No questions available. Create your first question!
+        </p>
+      </div>
+
+      <div class="questions-grid">
+        <div *ngFor="let question of filteredQuestions" class="question-card">
+          <div class="question-header">
+            <div class="question-meta">
+              <span class="question-type-badge">{{ getQuestionTypeLabel(question.questionType) }}</span>
+              <span class="difficulty-badge" [class]="'difficulty-' + (question.difficulty?.toLowerCase() || 'none')">
+                {{ getDifficultyLabel(question.difficulty) }}
+              </span>
+              <span class="marks-badge">{{ question.marks }} marks</span>
+            </div>
+            <div class="question-actions" *ngIf="authService.isAdmin() || authService.isOrganizer()">
+              <button (click)="editQuestion(question)" class="btn-icon" title="Edit">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button (click)="deleteQuestion(question.id!)" class="btn-icon danger" title="Delete">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="question-content">
+            <div class="question-text" [innerHTML]="question.questionText"></div>
+            
+            <div class="question-details">
+              <div class="detail-item" *ngIf="question.category">
+                <span class="detail-label">Category:</span>
+                <span class="detail-value">
+                  {{ question.category.name }}
+                  <span *ngIf="isCommonCategory(question.category)" class="common-indicator">(Common)</span>
+                </span>
+              </div>
+
+              <div class="detail-item" *ngIf="question.options">
+                <span class="detail-label">Options:</span>
+                <span class="detail-value">{{ question.options }}</span>
+              </div>
+
+              <div class="detail-item">
+                <span class="detail-label">Correct Answer:</span>
+                <span class="detail-value correct-answer">{{ question.correctAnswer }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,129 @@
+<div class="question-form-container">
+  <div class="form-header">
+    <h1>{{ isEditMode ? 'Edit Question' : 'Create New Question' }}</h1>
+    <button (click)="cancel()" class="btn btn-secondary">Cancel</button>
+  </div>
+
+  <div *ngIf="isLoading && isEditMode" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading question...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="message error-message">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    {{ errorMessage }}
+  </div>
+
+  <form *ngIf="!isLoading || !isEditMode" (ngSubmit)="saveQuestion()" class="question-form">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="category">Category</label>
+        <select 
+          id="category" 
+          [(ngModel)]="selectedCategoryId" 
+          name="category"
+        >
+          <option [ngValue]="null">No category</option>
+          <option *ngFor="let category of categories" [ngValue]="category.id">
+            {{ category.name }} {{ category.isCommon ? '(Common)' : '' }}
+          </option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="info-message">
+      <i class="bi bi-info-circle"></i>
+      <span>Questions are created in the question bank and can be mapped to multiple exams later.</span>
+    </div>
+
+    <div class="form-group">
+      <label for="questionText">Question Text *</label>
+      <div class="editor-hint">
+        <span class="hint-icon">🌐</span>
+        <span class="hint-text">Supports multiple languages and Unicode characters</span>
+      </div>
+      <app-rich-text-editor
+        [(ngModel)]="question.questionText"
+        name="questionText"
+        placeholder="Enter the question text (supports multiple languages: English, हिंदी, العربية, 中文, etc.)"
+        height="250px"
+        required
+      ></app-rich-text-editor>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="questionType">Question Type *</label>
+        <select 
+          id="questionType" 
+          [(ngModel)]="question.questionType" 
+          name="questionType"
+          required
+        >
+          <option value="MULTIPLE_CHOICE">Multiple Choice</option>
+          <option value="TRUE_FALSE">True/False</option>
+          <option value="SHORT_ANSWER">Short Answer</option>
+          <option value="ESSAY">Essay</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="difficulty">Difficulty</label>
+        <select 
+          id="difficulty" 
+          [(ngModel)]="question.difficulty" 
+          name="difficulty"
+        >
+          <option value="EASY">Easy</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="HARD">Hard</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="marks">Marks *</label>
+        <input 
+          type="number" 
+          id="marks" 
+          [(ngModel)]="question.marks" 
+          name="marks"
+          min="1"
+          required
+        />
+      </div>
+    </div>
+
+    <div class="form-group" *ngIf="question.questionType === 'MULTIPLE_CHOICE'">
+      <label for="options">Options (JSON format) *</label>
+      <textarea 
+        id="options" 
+        [(ngModel)]="question.options" 
+        name="options"
+        placeholder='["Option 1", "Option 2", "Option 3", "Option 4"]'
+        rows="3"
+      ></textarea>
+      <small class="hint">Enter options as a JSON array</small>
+    </div>
+
+    <div class="form-group">
+      <label for="correctAnswer">Correct Answer *</label>
+      <app-rich-text-editor
+        [(ngModel)]="question.correctAnswer"
+        name="correctAnswer"
+        placeholder="Enter the correct answer (supports multiple languages)"
+        height="150px"
+        required
+      ></app-rich-text-editor>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" (click)="cancel()" [disabled]="isLoading">
+        Cancel
+      </button>
+      <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+        <span *ngIf="!isLoading">{{ isEditMode ? 'Update' : 'Create' }} Question</span>
+        <span *ngIf="isLoading">Saving...</span>
+      </button>
+    </div>
+  </form>
+</div>

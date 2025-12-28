@@ -1,0 +1,113 @@
+<div class="exam-list-container">
+  <div class="page-header">
+    <h1>Exams</h1>
+    <p class="subtitle">Manage your exams</p>
+    <button *ngIf="authService.isOrganizer()" (click)="createExam()" class="btn btn-primary">
+      + Create Exam
+    </button>
+  </div>
+
+  <div *ngIf="isLoading && exams.length === 0" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading exams...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="message error-message">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="!isLoading || exams.length > 0" class="exams-content">
+    <!-- Filters -->
+    <div class="filters-section">
+      <div class="search-bar">
+        <input type="text" [(ngModel)]="searchTerm" placeholder="Search exams..." class="search-input" />
+        <span class="search-icon">🔍</span>
+      </div>
+
+      <div class="filter-row">
+        <div class="filter-group">
+          <label for="statusFilter">Status</label>
+          <select id="statusFilter" [(ngModel)]="selectedStatus" class="filter-select">
+            <option [ngValue]="null">All Statuses</option>
+            <option value="DRAFT">Draft</option>
+            <option value="PUBLISHED">Published</option>
+            <option value="ACTIVE">Active</option>
+            <option value="COMPLETED">Completed</option>
+          </select>
+        </div>
+
+        <button (click)="clearFilters()" class="btn btn-secondary clear-filters-btn">
+          Clear Filters
+        </button>
+      </div>
+    </div>
+
+    <!-- Exams List -->
+    <div class="exams-section">
+      <div class="exams-header">
+        <h2>Exams ({{ filteredExams.length }})</h2>
+      </div>
+
+      <div *ngIf="filteredExams.length === 0" class="empty-state">
+        <div class="empty-icon"><i class="bi bi-file-text"></i></div>
+        <p *ngIf="searchTerm || selectedStatus">
+          No exams found matching your filters
+        </p>
+        <p *ngIf="!searchTerm && !selectedStatus">
+          No exams available. Create your first exam!
+        </p>
+      </div>
+
+      <div class="exams-grid">
+        <div *ngFor="let exam of filteredExams" class="exam-card" (click)="viewExam(exam)">
+          <div class="exam-header">
+            <h3>{{ exam.title }}</h3>
+            <span [class]="'status-badge ' + getStatusClass(exam.status)">
+              {{ getStatusLabel(exam.status) }}
+            </span>
+          </div>
+
+          <p *ngIf="exam.description" class="exam-description">{{ exam.description }}</p>
+
+          <div class="exam-details">
+            <div class="detail-row">
+              <span class="detail-icon"><i class="bi bi-clock"></i></span>
+              <span class="detail-text">Duration: {{ formatDuration(exam.duration) }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-icon"><i class="bi bi-graph-up"></i></span>
+              <span class="detail-text">Total Marks: {{ exam.totalMarks }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-icon"><i class="bi bi-check-circle"></i></span>
+              <span class="detail-text">Passing Marks: {{ exam.passingMarks }}</span>
+            </div>
+            <div class="detail-row" *ngIf="exam.startTime">
+              <span class="detail-icon"><i class="bi bi-calendar"></i></span>
+              <span class="detail-text">Start: {{ exam.startTime | date:'short' }}</span>
+            </div>
+            <div class="detail-row" *ngIf="exam.endTime">
+              <span class="detail-icon"><i class="bi bi-calendar"></i></span>
+              <span class="detail-text">End: {{ exam.endTime | date:'short' }}</span>
+            </div>
+          </div>
+
+          <div class="exam-footer">
+            <span class="exam-meta">
+              Created: {{ exam.createdAt | date:'short' }}
+            </span>
+            <div class="exam-actions" *ngIf="authService.isOrganizer()" (click)="$event.stopPropagation()">
+              <button (click)="editExam(exam)" class="btn-icon" title="Edit" *ngIf="canEdit(exam)">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button (click)="deleteExam(exam.id!)" class="btn-icon danger" title="Delete" *ngIf="canDelete(exam)">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,91 @@
+<div class="result-list-container">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">
+          <i class="bi bi-graph-up me-2"></i>Exam Results
+        </h2>
+        <button class="btn btn-outline-primary" (click)="loadResults()" [disabled]="isLoading">
+          <i class="bi bi-arrow-clockwise me-1" [class.spin]="isLoading"></i>
+          Refresh
+        </button>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3 text-muted">Loading results...</p>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="error && !isLoading" class="alert alert-danger" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>{{ error }}
+      </div>
+
+      <!-- Results Table -->
+      <div *ngIf="!isLoading && !error" class="card shadow-sm">
+        <!-- Empty State -->
+        <div *ngIf="results.length === 0" class="card-body text-center py-5">
+          <i class="bi bi-inbox display-4 text-muted"></i>
+          <h5 class="mt-3 text-muted">No Results Found</h5>
+          <p class="text-muted">You haven't taken any exams yet.</p>
+        </div>
+
+        <!-- Results Table -->
+        <div *ngIf="results.length > 0" class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th scope="col">Exam Title</th>
+                <th scope="col">Exam Date</th>
+                <th scope="col">Marks</th>
+                <th scope="col">Percentage</th>
+                <th scope="col">Grade</th>
+                <th scope="col">Status</th>
+                <th scope="col" class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let result of results">
+                <td>
+                  <div class="fw-semibold">{{ result.examTitle || 'Untitled Exam' }}(<small class="text-muted">ID: {{
+                      result.examId }}</small>)</div>
+                </td>
+                <td>
+                  <div>{{ formatDateShort(result.examDate) }} <small class="text-muted">{{ formatTime(result.examDate)
+                      }}</small></div>
+                </td>
+                <td>
+                  <div>
+                    <span [ngClass]="{'text-success': isPassed(result), 'text-danger': !isPassed(result)}">
+                      {{ result.obtainedMarks }}
+                    </span>
+                    <span class="text-muted"> / {{ result.totalMarks }}</span>
+                  </div>
+                </td>
+                <td>
+                  <span [ngClass]="{'text-success': isPassed(result), 'text-danger': !isPassed(result)}">
+                    {{ formatPercentage(result.percentage) }}%
+                  </span>
+                </td>
+                <td>
+                  <span [ngClass]="getGradeBadgeClass(result.grade)">
+                    {{ result.grade || 'N/A' }}
+                  </span>
+                </td>
+                <td>
+                  <span [ngClass]="getStatusBadgeClass(result.status)">
+                    {{ result.status || 'N/A' }}
+                  </span>
+                </td>
+                <td class="text-end">
+                  <a [routerLink]="['/results', result.id]" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-eye me-1"></i>View Details
+                  </a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+</div>

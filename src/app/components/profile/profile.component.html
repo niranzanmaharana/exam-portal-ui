@@ -1,0 +1,146 @@
+<div class="profile-container">
+  <div class="profile-header">
+    <h1>My Profile</h1>
+    <button 
+      *ngIf="!isEditing" 
+      (click)="toggleEdit()" 
+      class="btn btn-primary">
+      Edit Profile
+    </button>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading profile...</p>
+  </div>
+
+  <div *ngIf="!isLoading && user" class="profile-content">
+    <!-- Profile Information Card -->
+    <div class="profile-card">
+      <div class="card-header">
+        <h2>Personal Information</h2>
+        <button 
+          *ngIf="isEditing" 
+          (click)="cancelEdit()" 
+          class="btn btn-secondary btn-sm">
+          Cancel
+        </button>
+      </div>
+
+      <div *ngIf="!isEditing" class="profile-info">
+        <div class="info-row">
+          <div class="info-item">
+            <label>Username</label>
+            <p>{{ user.username }}</p>
+          </div>
+          <div class="info-item">
+            <label>Role</label>
+            <p class="role-badge">{{ user.role }}</p>
+          </div>
+        </div>
+
+        <div class="info-row">
+          <div class="info-item">
+            <label>First Name</label>
+            <p>{{ user.firstName || 'Not set' }}</p>
+          </div>
+          <div class="info-item">
+            <label>Last Name</label>
+            <p>{{ user.lastName || 'Not set' }}</p>
+          </div>
+        </div>
+
+        <div class="info-row">
+          <div class="info-item">
+            <label>Email</label>
+            <p>{{ user.email }}</p>
+          </div>
+          <div class="info-item">
+            <label>Mobile Number</label>
+            <p>{{ user.mobileNumber || 'Not set' }}</p>
+          </div>
+        </div>
+
+        <div class="info-row">
+          <div class="info-item">
+            <label>Status</label>
+            <span [ngClass]="getStatusBadgeClass()">{{ user.status || 'ACTIVE' }}</span>
+          </div>
+          <div class="info-item">
+            <label>Member Since</label>
+            <p>{{ user.createdAt | date:'medium' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit Form -->
+      <form *ngIf="isEditing" (ngSubmit)="saveProfile()" class="profile-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="firstName">First Name</label>
+            <input 
+              type="text" 
+              id="firstName" 
+              [(ngModel)]="profileForm.firstName" 
+              name="firstName"
+              placeholder="Enter first name"
+            />
+          </div>
+          
+          <div class="form-group">
+            <label for="lastName">Last Name</label>
+            <input 
+              type="text" 
+              id="lastName" 
+              [(ngModel)]="profileForm.lastName" 
+              name="lastName"
+              placeholder="Enter last name"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input 
+              type="email" 
+              id="email" 
+              [(ngModel)]="profileForm.email" 
+              name="email"
+              placeholder="Enter email address"
+              required
+            />
+          </div>
+          
+          <div class="form-group">
+            <label for="mobileNumber">Mobile Number</label>
+            <input 
+              type="tel" 
+              id="mobileNumber" 
+              [(ngModel)]="profileForm.mobileNumber" 
+              name="mobileNumber"
+              placeholder="Enter mobile number"
+            />
+          </div>
+        </div>
+
+        <div *ngIf="errorMessage" class="message error-message">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          {{ errorMessage }}
+        </div>
+
+        <div *ngIf="successMessage" class="message success-message">
+          <i class="bi bi-check-circle-fill"></i>
+          {{ successMessage }}
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+            <span *ngIf="!isLoading">Save Changes</span>
+            <span *ngIf="isLoading">Saving...</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
