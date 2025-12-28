@@ -1,0 +1,212 @@
+<div class="bulk-upload-container">
+  <div class="page-header">
+    <div class="header-content">
+      <div>
+        <h1>Bulk Upload Questions</h1>
+        <p class="subtitle">Upload multiple questions from an Excel file</p>
+      </div>
+      <button (click)="goToQuestionList()" class="btn btn-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Back to Questions
+      </button>
+    </div>
+  </div>
+
+  <!-- Instructions Card -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="mb-0">
+        <i class="bi bi-info-circle me-2"></i>Instructions
+      </h5>
+    </div>
+    <div class="card-body">
+      <ol>
+        <li>Click <strong>"Download Template"</strong> to get the Excel template file</li>
+        <li>Fill in the template with your questions following the format shown in the example rows</li>
+        <li>Save the file and upload it using the form below</li>
+        <li>Review the upload results to see which questions were successfully created</li>
+      </ol>
+      <div class="alert alert-info mt-3 mb-0">
+        <strong>Note:</strong> The template includes example rows showing the correct format. 
+        You can delete these examples and add your own questions.
+      </div>
+    </div>
+  </div>
+
+  <!-- Download Template Section -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">
+        <i class="bi bi-download me-2"></i>Step 1: Download Template
+      </h5>
+      <p class="text-muted">Download the Excel template file to get started.</p>
+      <button 
+        (click)="downloadTemplate()" 
+        [disabled]="isDownloading"
+        class="btn btn-primary">
+        <span *ngIf="isDownloading" class="spinner-border spinner-border-sm me-2"></span>
+        <i *ngIf="!isDownloading" class="bi bi-download me-1"></i>
+        {{ isDownloading ? 'Downloading...' : 'Download Template' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Upload Section -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">
+        <i class="bi bi-upload me-2"></i>Step 2: Upload Questions
+      </h5>
+      
+      <div *ngIf="successMessage" class="alert alert-success">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        {{ successMessage }}
+      </div>
+
+      <div *ngIf="errorMessage && !uploadResponse" class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        {{ errorMessage }}
+      </div>
+
+      <div class="upload-area">
+        <div class="file-input-wrapper">
+          <input 
+            type="file" 
+            id="fileInput"
+            accept=".xlsx,.xls"
+            (change)="onFileSelected($event)"
+            class="form-control"
+            [disabled]="isUploading">
+          <label for="fileInput" class="file-label">
+            <i class="bi bi-cloud-upload me-2"></i>
+            Choose Excel File (.xlsx or .xls)
+          </label>
+        </div>
+        
+        <div *ngIf="selectedFile" class="selected-file mt-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <i class="bi bi-file-earmark-spreadsheet me-2"></i>
+              <strong>{{ selectedFile.name }}</strong>
+              <span class="text-muted ms-2">({{ formatFileSize(selectedFile.size) }})</span>
+            </div>
+            <button (click)="clearFile()" class="btn btn-sm btn-outline-danger">
+              <i class="bi bi-x"></i>Remove
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-3">
+          <button 
+            (click)="uploadFile()" 
+            [disabled]="!selectedFile || isUploading"
+            class="btn btn-success">
+            <span *ngIf="isUploading" class="spinner-border spinner-border-sm me-2"></span>
+            <i *ngIf="!isUploading" class="bi bi-upload me-1"></i>
+            {{ isUploading ? 'Uploading...' : 'Upload Questions' }}
+          </button>
+        </div>
+
+        <!-- Upload Results Table - Shown below upload button -->
+        <div *ngIf="uploadResponse" class="upload-results mt-4">
+          <h5 class="mb-3">
+            <i class="bi bi-list-check me-2"></i>Upload Results
+          </h5>
+          
+          <!-- Summary Cards -->
+          <div class="results-summary mb-4">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <div class="stat-card success">
+                  <div class="stat-value">{{ uploadResponse.successCount || 0 }}</div>
+                  <div class="stat-label">Successful</div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="stat-card danger">
+                  <div class="stat-value">{{ uploadResponse.failureCount || 0 }}</div>
+                  <div class="stat-label">Failed</div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="stat-card info">
+                  <div class="stat-value">{{ uploadResponse.totalRows || 0 }}</div>
+                  <div class="stat-label">Total Rows</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Results Table -->
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover results-table">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 80px;">Row #</th>
+                  <th style="width: 100px;">Status</th>
+                  <th>Question Text</th>
+                  <th style="width: 140px;">Question Type</th>
+                  <th style="width: 80px;">Marks</th>
+                  <th style="width: 120px;">Category</th>
+                  <th>Error/Exception</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Success rows -->
+                <tr *ngFor="let question of uploadResponse?.createdQuestions || []; let i = index" class="table-success">
+                  <td class="text-center">
+                    <i class="bi bi-check-circle-fill text-success" title="Success"></i>
+                  </td>
+                  <td><span class="badge bg-success">Success</span></td>
+                  <td>
+                    <div class="question-text-preview" [innerHTML]="(question.questionText || '').substring(0, 150) + ((question.questionText && question.questionText.length > 150) ? '...' : '')"></div>
+                  </td>
+                  <td><span class="badge bg-secondary">{{ getQuestionTypeLabel(question.questionType) }}</span></td>
+                  <td class="text-center">{{ question.marks }}</td>
+                  <td>{{ question.category?.name || '-' }}</td>
+                  <td class="text-success">-</td>
+                </tr>
+                
+                <!-- Error rows -->
+                <tr *ngFor="let error of uploadResponse?.errors || []" class="table-danger">
+                  <td class="text-center fw-bold">{{ error.rowNumber }}</td>
+                  <td><span class="badge bg-danger">Failed</span></td>
+                  <td>
+                    <div class="question-text-preview">{{ error.questionText || '(empty)' }}</div>
+                  </td>
+                  <td>-</td>
+                  <td class="text-center">-</td>
+                  <td>-</td>
+                  <td>
+                    <div class="error-message">
+                      <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                      <strong>{{ error.errorMessage }}</strong>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Success Message -->
+          <div *ngIf="uploadResponse && uploadResponse.successCount > 0" class="mt-3">
+            <div class="alert alert-success">
+              <i class="bi bi-check-circle-fill me-2"></i>
+              <strong>{{ uploadResponse.successCount }}</strong> question(s) have been successfully added to the question bank!
+            </div>
+            <button (click)="goToQuestionList()" class="btn btn-primary">
+              <i class="bi bi-list me-1"></i>View All Questions
+            </button>
+          </div>
+
+          <!-- Error Summary -->
+          <div *ngIf="uploadResponse && uploadResponse.failureCount > 0" class="mt-3">
+            <div class="alert alert-danger">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>
+              <strong>{{ uploadResponse.failureCount }}</strong> question(s) failed to upload. Please review the errors above and fix them in your Excel file.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

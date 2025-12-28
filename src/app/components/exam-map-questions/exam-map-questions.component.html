@@ -1,0 +1,181 @@
+<div class="map-questions-container">
+  <div class="page-header">
+    <div class="header-content">
+      <div>
+        <h1>Map Questions to Exam</h1>
+        <p *ngIf="exam" class="exam-title">{{ exam.title }}</p>
+      </div>
+      <button (click)="cancel()" class="btn btn-secondary">
+        <i class="bi bi-x-lg me-1"></i>Cancel
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="isLoading && !exam" class="text-center p-5">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-3">Loading exam...</p>
+  </div>
+
+  <div *ngIf="exam && exam.status !== 'DRAFT'" class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    <strong>Note:</strong> Only DRAFT exams can be modified. This exam is currently <strong>{{ exam.status }}</strong>.
+  </div>
+
+  <div *ngIf="exam" class="map-questions-content" [class.draft-exam]="exam.status === 'DRAFT'">
+    <!-- Filters Section -->
+    <div class="filters-section card mb-4">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="bi bi-funnel me-2"></i>Filters
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-12 col-md-6 col-lg-3">
+            <label class="form-label">Search</label>
+            <input 
+              type="text" 
+              class="form-control" 
+              [(ngModel)]="searchTerm"
+              placeholder="Search questions...">
+          </div>
+          <div class="col-12 col-md-6 col-lg-3">
+            <label class="form-label">Question Type</label>
+            <select class="form-select" [(ngModel)]="selectedQuestionType">
+              <option [ngValue]="null">All Types</option>
+              <option value="MULTIPLE_CHOICE">Multiple Choice</option>
+              <option value="TRUE_FALSE">True/False</option>
+              <option value="SHORT_ANSWER">Short Answer</option>
+              <option value="ESSAY">Essay</option>
+            </select>
+          </div>
+          <div class="col-12 col-md-6 col-lg-3">
+            <label class="form-label">Category</label>
+            <select class="form-select" [(ngModel)]="selectedCategoryId">
+              <option [ngValue]="null">All Categories</option>
+              <option *ngFor="let category of categories" [ngValue]="category.id">
+                {{ category.name }} {{ category.isCommon ? '(Common)' : '' }}
+              </option>
+            </select>
+          </div>
+          <div class="col-12 col-md-6 col-lg-3">
+            <label class="form-label">Difficulty</label>
+            <select class="form-select" [(ngModel)]="selectedDifficulty">
+              <option [ngValue]="null">All Difficulties</option>
+              <option value="EASY">Easy</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="HARD">Hard</option>
+            </select>
+          </div>
+          <div class="col-12 col-md-6 col-lg-3 d-flex align-items-end">
+            <button (click)="clearFilters()" class="btn btn-outline-secondary w-100">
+              <i class="bi bi-x-circle me-1"></i>Clear Filters
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Selection Actions -->
+    <div class="selection-actions card mb-4">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <strong>{{ selectedQuestionIds.length }}</strong> question(s) selected
+            <span *ngIf="filteredQuestions.length > 0" class="text-muted ms-2">
+              ({{ filteredQuestions.length }} available)
+            </span>
+          </div>
+          <div class="btn-group">
+            <button (click)="selectAll()" class="btn btn-sm btn-outline-primary">
+              <i class="bi bi-check-all me-1"></i>Select All
+            </button>
+            <button (click)="deselectAll()" class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-x-square me-1"></i>Deselect All
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Questions List -->
+    <div class="questions-list-section">
+      <div *ngIf="isLoadingQuestions" class="text-center p-5">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3">Loading available questions...</p>
+      </div>
+
+      <div *ngIf="!isLoadingQuestions && filteredQuestions.length === 0" class="text-center p-5">
+        <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+        <p class="mt-3 text-muted">No questions available to map.</p>
+        <a [routerLink]="['/questions/new']" class="btn btn-primary mt-2">
+          <i class="bi bi-plus-circle me-1"></i>Create New Question
+        </a>
+      </div>
+
+      <div *ngIf="!isLoadingQuestions && filteredQuestions.length > 0" class="questions-grid">
+        <div 
+          *ngFor="let question of filteredQuestions" 
+          class="question-card card mb-3"
+          [class.selected]="isQuestionSelected(question.id)"
+          (click)="toggleQuestionSelection(question.id)">
+          <div class="card-body">
+            <div class="d-flex align-items-start">
+              <div class="form-check me-3 mt-1">
+                <input 
+                  class="form-check-input" 
+                  type="checkbox" 
+                  [checked]="isQuestionSelected(question.id)"
+                  (change)="toggleQuestionSelection(question.id)"
+                  (click)="$event.stopPropagation()">
+              </div>
+              <div class="flex-grow-1">
+                <div class="question-text mb-2" [innerHTML]="question.questionText"></div>
+                <div class="question-meta d-flex flex-wrap gap-2">
+                  <span class="badge bg-secondary">{{ getQuestionTypeLabel(question.questionType) }}</span>
+                  <span class="badge bg-info">{{ question.marks }} marks</span>
+                  <span *ngIf="question.difficulty" class="badge bg-warning text-dark">
+                    {{ getDifficultyLabel(question.difficulty) }}
+                  </span>
+                  <span *ngIf="question.category" class="badge bg-primary">
+                    {{ question.category.name }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons card mt-4">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+          <button (click)="cancel()" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Back to Exam
+          </button>
+          <button 
+            *ngIf="exam && exam.status === 'DRAFT'"
+            (click)="addSelectedQuestions()" 
+            class="btn btn-primary"
+            [disabled]="selectedQuestionIds.length === 0 || isLoading">
+            <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+            <i *ngIf="!isLoading" class="bi bi-check-circle me-1"></i>
+            Add Selected ({{ selectedQuestionIds.length }})
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

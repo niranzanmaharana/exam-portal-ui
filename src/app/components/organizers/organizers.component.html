@@ -1,0 +1,105 @@
+<div class="organizers-container">
+  <div class="page-header">
+    <h1>Organizers</h1>
+    <p class="subtitle">Manage all registered organizers</p>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading organizers...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="error-container">
+    <div class="error-message">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      {{ errorMessage }}
+    </div>
+    <button (click)="loadOrganizers()" class="btn btn-primary">Retry</button>
+  </div>
+
+  <div *ngIf="!isLoading && !errorMessage" class="organizers-content">
+    <!-- Search Bar -->
+    <div class="search-bar">
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        placeholder="Search organizers by name, username, email, or mobile..."
+        class="search-input"
+      />
+      <span class="search-icon">🔍</span>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-container">
+      <div class="stat-card">
+        <div class="stat-value">{{ totalOrganizers }}</div>
+        <div class="stat-label">Total Organizers</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ activeOrganizers }}</div>
+        <div class="stat-label">Active</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ inactiveOrganizers }}</div>
+        <div class="stat-label">Inactive</div>
+      </div>
+    </div>
+
+    <!-- Organizers Table -->
+    <div class="organizers-table-container">
+      <table class="organizers-table">
+        <thead>
+          <tr>
+            <th>Organizer</th>
+            <th>Contact</th>
+            <th>Status</th>
+            <th>Registered</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let organizer of filteredOrganizers" class="organizer-row">
+            <td>
+              <div class="organizer-info">
+                <div class="organizer-avatar">{{ getInitials(organizer) }}</div>
+                <div class="organizer-details">
+                  <div class="organizer-name">
+                    {{ getOrganizerName(organizer) }}
+                  </div>
+                  <div class="organizer-username">{{ getUsernameWithAt(organizer) }}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="contact-info">
+                <div class="contact-item">
+                  <span class="contact-icon">📧</span>
+                  {{ organizer.email }}
+                </div>
+                <div class="contact-item" *ngIf="organizer.mobileNumber">
+                  <i class="bi bi-phone"></i>
+                  {{ organizer.mobileNumber }}
+                </div>
+              </div>
+            </td>
+            <td>
+              <span [ngClass]="getStatusBadgeClass(organizer.status)">
+                {{ organizer.status || 'ACTIVE' }}
+              </span>
+            </td>
+            <td>
+              <div class="date-info">
+                {{ organizer.createdAt | date:'mediumDate' }}
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div *ngIf="filteredOrganizers.length === 0" class="empty-state">
+        <div class="empty-icon">👥</div>
+        <p *ngIf="searchTerm">No organizers found matching "{{ searchTerm }}"</p>
+        <p *ngIf="!searchTerm">No organizers registered yet</p>
+      </div>
+    </div>
+  </div>
+</div>

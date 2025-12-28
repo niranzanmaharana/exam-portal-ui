@@ -1,0 +1,14 @@
+<div class="rich-text-editor-wrapper">
+  <div class="editor-toolbar">
+    <button 
+      type="button" 
+      class="clear-btn" 
+      (click)="clearContent()" 
+      title="Clear content"
+      *ngIf="hasContent">
+      <i class="bi bi-trash me-1"></i>Clear
+    </button>
+  </div>
+  <div #editor class="rich-text-editor"></div>
+</div>
+

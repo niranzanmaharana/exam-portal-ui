@@ -1,0 +1,5 @@
+<app-header *ngIf="!isPublicExamPage"></app-header>
+<main>
+  <router-outlet></router-outlet>
+</main>
+<app-footer *ngIf="!isPublicExamPage"></app-footer>

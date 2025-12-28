@@ -1,0 +1,43 @@
+<div class="dashboard-container">
+  <h1 class="welcome-message">Welcome, {{ currentUser?.username }}!</h1>
+  
+  <div class="dashboard-content">
+    <div class="dashboard-section">
+      <h2>Your Role: {{ currentUser?.role }}</h2>
+      <div class="quick-actions">
+        <a routerLink="/exams" class="action-card" *ngIf="authService.isAdmin() || authService.isOrganizer()">
+          <h3>Exams</h3>
+          <p>View and manage exams</p>
+        </a>
+        <a routerLink="/questions" class="action-card" *ngIf="authService.isAdmin() || authService.isOrganizer()">
+          <h3>Questions</h3>
+          <p>Manage question bank</p>
+        </a>
+        <a routerLink="/results" class="action-card">
+          <h3>Results</h3>
+          <p>View exam results</p>
+        </a>
+      </div>
+    </div>
+
+    <div class="dashboard-section">
+      <h2>Recent Exams</h2>
+      <div *ngIf="isLoading" class="loading">Loading...</div>
+      <div *ngIf="!isLoading && exams.length === 0" class="no-data">
+        No exams available
+      </div>
+      <div *ngIf="!isLoading && exams.length > 0" class="exams-list">
+        <div *ngFor="let exam of exams.slice(0, 5)" class="exam-card">
+          <h3>{{ exam.title }}</h3>
+          <p>{{ exam.description }}</p>
+          <div class="exam-info">
+            <span>Duration: {{ exam.duration }} min</span>
+            <span>Marks: {{ exam.totalMarks }}</span>
+            <span>Status: {{ exam.status }}</span>
+          </div>
+          <a [routerLink]="['/exams', exam.id]" class="view-btn" *ngIf="authService.isAdmin() || authService.isOrganizer()">View Details</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

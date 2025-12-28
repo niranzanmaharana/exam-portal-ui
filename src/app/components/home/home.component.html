@@ -1,0 +1,114 @@
+<div class="home-container">
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-title">
+        Welcome to <span class="gradient-text">Exam Portal</span>
+      </h1>
+      <p class="hero-subtitle">
+        Your comprehensive online examination platform for seamless learning and assessment
+      </p>
+      <div class="hero-buttons" *ngIf="!authService.isAuthenticated()">
+        <a routerLink="/login" class="btn btn-primary">Get Started</a>
+        <a routerLink="/login" class="btn btn-secondary">Learn More</a>
+      </div>
+      <div class="hero-buttons" *ngIf="authService.isAuthenticated()">
+        <a routerLink="/dashboard" class="btn btn-primary">Go to Dashboard</a>
+      </div>
+    </div>
+    <div class="hero-image">
+      <div class="floating-card card-1">
+        <div class="card-icon"><i class="bi bi-file-text"></i></div>
+        <div class="card-text">Exams</div>
+      </div>
+      <div class="floating-card card-2">
+        <div class="card-icon"><i class="bi bi-question-circle"></i></div>
+        <div class="card-text">Questions</div>
+      </div>
+      <div class="floating-card card-3">
+        <div class="card-icon"><i class="bi bi-graph-up"></i></div>
+        <div class="card-text">Results</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features-section">
+    <div class="container">
+      <h2 class="section-title">Why Choose Exam Portal?</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-bullseye"></i></div>
+          <h3>Easy to Use</h3>
+          <p>Intuitive interface designed for candidates and organizers</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-lightning-charge"></i></div>
+          <h3>Fast & Reliable</h3>
+          <p>Lightning-fast performance with 99.9% uptime guarantee</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-shield-lock"></i></div>
+          <h3>Secure</h3>
+          <p>Enterprise-grade security to protect your data</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-graph-up-arrow"></i></div>
+          <h3>Analytics</h3>
+          <p>Comprehensive reports and analytics for better insights</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-people"></i></div>
+          <h3>Role-Based Access</h3>
+          <p>Different roles for Admin, Organizer, and Candidate</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-phone"></i></div>
+          <h3>Responsive</h3>
+          <p>Works seamlessly on desktop, tablet, and mobile devices</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section class="how-it-works-section">
+    <div class="container">
+      <h2 class="section-title">How It Works</h2>
+      <div class="steps-container">
+        <div class="step">
+          <div class="step-number">1</div>
+          <h3>Sign Up</h3>
+          <p>Create your account as Admin, Organizer, or Candidate</p>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <h3>Create Exams</h3>
+          <p>Organizers create exams with questions and set time limits</p>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <h3>Take Exams</h3>
+          <p>Candidates take exams online with real-time tracking</p>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step">
+          <div class="step-number">4</div>
+          <h3>View Results</h3>
+          <p>Get instant results and detailed performance analytics</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section" *ngIf="!authService.isAuthenticated()">
+    <div class="container">
+      <h2>Ready to Get Started?</h2>
+      <p>Join thousands of candidates and organizers using Exam Portal</p>
+      <a routerLink="/login" class="btn btn-large">Start Your Journey</a>
+    </div>
+  </section>
+</div>

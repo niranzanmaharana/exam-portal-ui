@@ -1,0 +1,195 @@
+<div class="min-vh-100 bg-gradient-primary py-5">
+  <div class="container">
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="text-center text-white py-5">
+      <div class="spinner-border text-light mb-3" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="fs-5 fw-semibold">Loading exam...</p>
+    </div>
+
+    <!-- Error Message (when exam not found) -->
+    <div *ngIf="errorMessage && !exam" class="alert alert-danger alert-dismissible fade show shadow" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      <strong>Error:</strong> {{ errorMessage }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- Main Content -->
+    <div *ngIf="exam && !isLoading" class="row justify-content-center">
+      <div class="col-12 col-md-10 col-lg-8 col-xl-7">
+        <!-- Header Section -->
+        <div class="text-center text-white mb-4">
+          <h1 class="display-4 fw-bold mb-3 text-white text-shadow">Exam Access</h1>
+          <p class="lead fs-5 opacity-90">Verify your identity and start the exam</p>
+        </div>
+
+        <!-- Exam Information Card -->
+        <div class="card shadow-lg mb-4 border-0 rounded-4">
+          <div class="card-header bg-primary text-white rounded-top-4 py-3">
+            <h2 class="card-title mb-0 fs-4 fw-bold">
+              <i class="bi bi-file-earmark-text me-2"></i>{{ exam.title }}
+            </h2>
+          </div>
+          <div class="card-body p-4">
+            <p *ngIf="exam.description" class="text-muted mb-4">{{ exam.description }}</p>
+
+            <div class="row g-3">
+              <div class="col-6 col-md-3" *ngIf="exam.startTime">
+                <div class="p-3 bg-light rounded-3">
+                  <div class="text-muted small fw-semibold text-uppercase mb-2">Exam Date</div>
+                  <div class="fs-6 fw-bold text-dark">{{ getExamDate(exam.startTime) }}</div>
+                </div>
+              </div>
+              <div class="col-6 col-md-3" *ngIf="exam.startTime">
+                <div class="p-3 bg-light rounded-3">
+                  <div class="text-muted small fw-semibold text-uppercase mb-2">Start Time</div>
+                  <div class="fs-6 fw-bold text-dark">{{ getExamTime(exam.startTime) }}</div>
+                </div>
+              </div>
+              <div class="col-6 col-md-3" *ngIf="exam.endTime">
+                <div class="p-3 bg-light rounded-3">
+                  <div class="text-muted small fw-semibold text-uppercase mb-2">End Time</div>
+                  <div class="fs-6 fw-bold text-dark">{{ getExamTime(exam.endTime) }}</div>
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="p-3 bg-light rounded-3">
+                  <div class="text-muted small fw-semibold text-uppercase mb-2">Duration</div>
+                  <div class="fs-5 fw-bold text-dark">{{ formatDuration(exam.duration) }}</div>
+                </div>
+              </div>
+              <div class="col-6 col-md-4">
+                <div class="p-3 bg-light rounded-3">
+                  <div class="text-muted small fw-semibold text-uppercase mb-2">Total Marks</div>
+                  <div class="fs-5 fw-bold text-dark">{{ exam.totalMarks }}</div>
+                </div>
+              </div>
+              <div class="col-6 col-md-4">
+                <div class="p-3 bg-light rounded-3">
+                  <div class="text-muted small fw-semibold text-uppercase mb-2">Passing Marks</div>
+                  <div class="fs-5 fw-bold text-dark">{{ exam.passingMarks }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Student Information Card -->
+        <div class="card shadow-lg mb-4 border-0 rounded-4"
+          *ngIf="authService.getCurrentUser() && authService.isCandidate()">
+          <div class="card-header bg-info text-white rounded-top-4 py-3">
+            <h3 class="card-title mb-0 fs-5 fw-bold">
+              <i class="bi bi-person-badge me-2"></i>Candidate Information
+            </h3>
+          </div>
+          <div class="card-body p-4">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <div class="p-3 bg-light rounded-3">
+                  <div class="text-muted small fw-semibold text-uppercase mb-2">Candidate Name</div>
+                  <div class="fs-5 fw-bold text-dark">{{ authService.getCurrentUser()?.firstName }} {{
+                    authService.getCurrentUser()?.lastName }}</div>
+                </div>
+              </div>
+              <div class="col-12 col-md-6"
+                *ngIf="!authService.getCurrentUser()?.firstName && !authService.getCurrentUser()?.lastName && authService.getCurrentUser()?.username">
+                <div class="p-3 bg-light rounded-3">
+                  <div class="text-muted small fw-semibold text-uppercase mb-2">Name</div>
+                  <div class="fs-5 fw-bold text-dark">{{ authService.getCurrentUser()?.username }}</div>
+                </div>
+              </div>
+              <div class="col-12 col-md-6" *ngIf="authService.getCurrentUser()?.registrationCode">
+                <div class="p-3 bg-light rounded-3">
+                  <div class="text-muted small fw-semibold text-uppercase mb-2">Registration Code</div>
+                  <div class="fs-5 fw-bold text-primary registration-code">{{
+                    authService.getCurrentUser()?.registrationCode }}</div>
+                </div>
+              </div>
+              <div class="col-12 col-md-6" *ngIf="authService.getCurrentUser()?.email">
+                <div class="p-3 bg-light rounded-3">
+                  <div class="text-muted small fw-semibold text-uppercase mb-2">Email</div>
+                  <div class="fs-6 fw-bold text-dark">{{ authService.getCurrentUser()?.email }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Non-Candidate Warning -->
+        <div class="alert alert-warning shadow mb-4" *ngIf="authService.getCurrentUser() && !authService.isCandidate()">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          <strong>Access Restricted:</strong> Only students (CANDIDATE role) can take exams. Your current role is: {{
+          authService.getCurrentUser()?.role }}.
+        </div>
+
+        <!-- Security Verification Form -->
+        <div class="card shadow-lg border-0 rounded-4">
+          <div class="card-header bg-success text-white rounded-top-4 py-3">
+            <h3 class="card-title mb-0 fs-5 fw-bold">
+              <i class="bi bi-shield-lock me-2"></i>Security Verification
+            </h3>
+          </div>
+          <div class="card-body p-4">
+            <form (ngSubmit)="startExam()">
+              <!-- Captcha Display -->
+              <div class="mb-4">
+                <label class="form-label fw-semibold mb-3">Captcha Code</label>
+                <div class="d-flex align-items-center justify-content-center p-4 bg-light border rounded-3 mb-3"
+                  style="min-height: 80px;">
+                  <span class="fs-1 fw-bold text-primary"
+                    style="letter-spacing: 12px; font-family: 'Courier New', monospace; user-select: none;">
+                    {{ captchaText }}
+                  </span>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="generateCaptcha()"
+                  [disabled]="isAccessing">
+                  <i class="bi bi-arrow-clockwise me-1"></i>Refresh Captcha
+                </button>
+              </div>
+
+              <!-- Captcha Input -->
+              <div class="mb-4">
+                <label for="captchaInput" class="form-label fw-semibold mb-2">
+                  Enter the captcha code shown above (case-insensitive)
+                </label>
+                <input type="text" class="form-control form-control-lg" id="captchaInput" [(ngModel)]="captchaInput"
+                  (input)="onCaptchaInput()" name="captchaInput" placeholder="Enter captcha code" maxlength="5"
+                  autocomplete="off" [disabled]="isAccessing" [class.is-invalid]="captchaError" />
+                <div *ngIf="captchaError" class="invalid-feedback d-block">
+                  <i class="bi bi-exclamation-circle me-1"></i>{{ captchaError }}
+                </div>
+              </div>
+
+              <!-- Error Message -->
+              <div *ngIf="errorMessage" class="alert alert-danger mb-4">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                {{ errorMessage }}
+              </div>
+
+              <!-- Submit Button -->
+              <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg"
+                  [disabled]="isAccessing || !isCaptchaValid() || (authService.getCurrentUser() && !authService.isCandidate())">
+                  <span *ngIf="!isAccessing">
+                    <i class="bi bi-play-circle me-2"></i>Start Exam
+                  </span>
+                  <span *ngIf="isAccessing">
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Starting...
+                  </span>
+                </button>
+              </div>
+
+              <!-- Helper Text -->
+              <div *ngIf="!isCaptchaValid()" class="text-center text-muted small mt-3">
+                <i class="bi bi-info-circle me-1"></i>
+                Please complete the captcha verification to proceed.
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

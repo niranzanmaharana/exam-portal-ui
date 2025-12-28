@@ -1,0 +1,75 @@
+.result-detail-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 30px;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.result-stat-card {
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 0.5rem;
+  text-align: center;
+}
+
+.result-stat-card label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6c757d;
+}
+
+.result-stat-card .display-6 {
+  font-size: 2rem;
+  margin-bottom: 0;
+}
+
+.info-item {
+  padding: 0.5rem 0;
+}
+
+.info-item strong {
+  color: #495057;
+}
+
+.registration-code {
+  background-color: #e9ecef;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+}
+
+.badge-lg {
+  font-size: 1.25rem;
+  padding: 0.5rem 1rem;
+}
+
+.card {
+  border: none;
+  border-radius: 0.5rem;
+}
+
+.card-header {
+  border-bottom: 2px solid #dee2e6;
+  font-weight: 600;
+}
+
+.badge {
+  font-size: 0.875rem;
+  padding: 0.35em 0.65em;
+}
+
